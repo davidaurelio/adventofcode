@@ -34,14 +34,14 @@ fn count(line: &str, counts: &mut Vec<i32>) -> io::Result<()> {
   let digits = line.trim_end();
 
   if digits.len() != counts.len() {
-    return Err(bad_input(&line));
+    return Err(bad_input(line));
   }
 
   for (digit, count) in digits.chars().zip(counts) {
     match digit {
       '0' => *count -= 1,
       '1' => *count += 1,
-      _ => return Err(bad_input(&line)),
+      _ => return Err(bad_input(line)),
     }
   }
 

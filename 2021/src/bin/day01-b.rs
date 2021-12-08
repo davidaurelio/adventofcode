@@ -5,9 +5,9 @@ fn main() -> io::Result<()> {
   let mut line = String::new();
   let mut window = [0, 0, 0];
 
-  for i in 0..3 {
+  for item in &mut window {
     stdin.read_line(&mut line)?;
-    window[i] = line.trim().parse().unwrap();
+    *item = line.trim().parse().unwrap();
     line.clear();
   }
 
