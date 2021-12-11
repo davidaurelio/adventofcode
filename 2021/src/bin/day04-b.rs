@@ -3,5 +3,5 @@ use std::io;
 
 fn main() -> io::Result<()> {
   let stdin = io::stdin();
-  run(stdin.lock(), BingoResultType::Winner)
+  run(stdin.lock(), BingoResultType::Loser)
 }
