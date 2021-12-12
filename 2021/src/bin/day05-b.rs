@@ -28,13 +28,7 @@ fn read_coords(stdin: io::StdinLock) -> io::Result<IntersectionCounts> {
   stdin
     .lines()
     .map(|r| r.and_then(|l| parse_line(&l)))
-    .try_for_each(|r| match r {
-      Err(e) => Err(e),
-      Ok(line) => {
-        add_line(&mut counts, line);
-        Ok(())
-      }
-    })?;
+    .try_for_each(|r| r.map(|line| add_line(&mut counts, line)))?;
   Ok(counts)
 }
 
@@ -49,12 +43,16 @@ impl IntersectionCounts {
     }
   }
 
+  pub fn add_point(&mut self, point: Point) {
+    *self.counts.entry(point).or_insert(0) += 1
+  }
+
   pub fn add_points<T>(&mut self, points: T)
   where
     T: Iterator<Item = (u32, u32)>,
   {
     for (x, y) in points {
-      *self.counts.entry([x, y]).or_insert(0) += 1;
+      self.add_point([x, y]);
     }
   }
 
@@ -74,7 +72,7 @@ fn parse_line(line: &str) -> io::Result<Vector> {
 fn add_line(counts: &mut IntersectionCounts, [[x1, y1], [x2, y2]]: Vector) {
   if x1 == x2 {
     if y1 == y2 {
-      counts.add_points([(x1, y1)].into_iter())
+      counts.add_point([x1, y1])
     } else {
       counts.add_points(repeat(x1).zip(range(y1, y2)))
     }
