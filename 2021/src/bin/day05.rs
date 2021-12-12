@@ -30,13 +30,14 @@ fn read_coords(stdin: io::StdinLock) -> io::Result<HashMap<Point, u32>> {
     .filter_map(|r| r.map(as_straight_line).transpose())
     .try_for_each(|r| match r {
       Err(e) => Err(e),
-      Ok([xs, ys]) => Ok({
+      Ok([xs, ys]) => {
         for x in xs {
           for y in Clone::clone(&ys) {
             *coords.entry([x, y]).or_insert(0) += 1;
           }
         }
-      }),
+        Ok(())
+      }
     })?;
   Ok(coords)
 }

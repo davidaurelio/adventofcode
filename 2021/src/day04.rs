@@ -346,12 +346,12 @@ impl BitSet {
 
   pub fn set(&mut self, bit: usize, value: bool) {
     let (idx, lshift) = (bit / 64, bit % 64);
-    if idx >= self.bits.len() {
-      return;
-    } else if value {
-      self.bits[idx] |= 1 << lshift;
-    } else {
-      self.bits[idx] ^= 1 << lshift;
+    if idx < self.bits.len() {
+      if value {
+        self.bits[idx] |= 1 << lshift;
+      } else {
+        self.bits[idx] ^= 1 << lshift;
+      }
     }
   }
 
@@ -363,6 +363,6 @@ impl BitSet {
       }
     }
 
-    self.bits[last] == (1u64 << self.size % 64) - 1
+    self.bits[last] == (1u64 << (self.size % 64)) - 1
   }
 }
