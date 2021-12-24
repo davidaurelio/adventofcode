@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::io;
 use std::io::BufRead;
 use std::ops::Index;
@@ -9,12 +10,8 @@ fn main() -> io::Result<()> {
   let risk = height_map
     .coords()
     .filter_map(|coord| {
-      let height = height_map[coord];
-      if height_map
-        .neighbours(coord)
-        .all(|neighbour| height_map[neighbour] > height)
-      {
-        Some(height)
+      if is_low_point(coord, &height_map) {
+        Some(height_map[coord])
       } else {
         None
       }
@@ -23,6 +20,32 @@ fn main() -> io::Result<()> {
     .fold(0u32, |sum, risk| sum + risk as u32);
 
   println!("Sum of risks {}", risk);
+
+  let mut three_largest = [0, 0, 0];
+  height_map
+    .coords()
+    .filter(|&c| is_low_point(c, &height_map))
+    .map(|c| basin_size(c, &height_map))
+    .for_each(|s| {
+      if s > three_largest[0] {
+        three_largest[2] = three_largest[1];
+        three_largest[1] = three_largest[0];
+        three_largest[0] = s;
+      } else if s > three_largest[1] {
+        three_largest[2] = three_largest[1];
+        three_largest[1] = s;
+      } else if s > three_largest[2] {
+        three_largest[2] = s;
+      }
+    });
+
+  println!(
+    "Three largest: {}, {}, {}. Multiplied: {}",
+    three_largest[0],
+    three_largest[1],
+    three_largest[2],
+    three_largest[0] * three_largest[1] * three_largest[2]
+  );
 
   Ok(())
 }
@@ -104,6 +127,32 @@ impl<T: BufRead> TryFrom<io::Lines<T>> for HeightMap {
 
     Ok(Self { heights, width })
   }
+}
+
+fn is_low_point(coord: (usize, usize), height_map: &HeightMap) -> bool {
+  let height = height_map[coord];
+  height_map
+    .neighbours(coord)
+    .all(|neighbour| height_map[neighbour] > height)
+}
+
+fn basin_size(coord: (usize, usize), height_map: &HeightMap) -> usize {
+  let mut seen: HashSet<_> = [coord].into_iter().collect();
+  let mut next = vec![coord];
+  let mut size = 0;
+
+  while !next.is_empty() {
+    size += 1;
+    let coord = next.pop().unwrap();
+
+    next.extend(
+      height_map
+        .neighbours(coord)
+        .filter(|&c| seen.insert(c) && height_map[c] < 9),
+    );
+  }
+
+  size
 }
 
 fn risk_level(height: u8) -> u8 {
