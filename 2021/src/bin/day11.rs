@@ -10,6 +10,7 @@ struct Coord {
   col: usize,
 }
 
+#[derive(Clone)]
 struct Map {
   cells: [u8; 100],
 }
@@ -17,11 +18,23 @@ struct Map {
 fn main() -> io::Result<()> {
   let mut map = Map::from_iter(io::stdin().lock().bytes())?;
 
+  let mut simultaneous_found = false;
   let mut flashes = 0;
-  for _ in 0..100 {
+  for step in 0.. {
+    if !simultaneous_found && map.iter().all(|&cell| cell == 0) {
+      println!("Octopuses flashing simultanously in step {}", step);
+      simultaneous_found = true;
+    }
+
     flashes += run_step(&mut map);
+    if step == 99 {
+      println!("# flashes after 100 steps: {:?}", flashes);
+    }
+
+    if step >= 99 && simultaneous_found {
+      break;
+    }
   }
-  println!("# flashes: {}", flashes);
 
   Ok(())
 }
@@ -165,6 +178,10 @@ impl Map {
       .iter_mut()
       .enumerate()
       .map(|(idx, value)| (Coord::from(idx), value))
+  }
+
+  pub fn iter(&self) -> impl Iterator<Item = &u8> {
+    self.cells.iter()
   }
 }
 
